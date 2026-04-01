@@ -7,14 +7,14 @@ on:
 
 jobs:
   hello_world_job:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     steps:
       - name: Say hello
         run: |
           echo "Hello World!"
       - name: Run Date
         run: |
-          Date
+          date
       - name: Run ls -l
         run: |
           ls -l
