@@ -1,12 +1,15 @@
-name: Simple Deployment Pipeline
+name: Deployment pipeline
 
 on:
   push:
     branches:
       - main
   pull_request:
-    branches:
-      - main
+    branches: [main]
+    types: [opened, synchronize]
+
+permissions:
+  contents: write
 
 jobs:
   simple_deployment_pipeline:
@@ -39,3 +42,17 @@ jobs:
         run: curl "$RENDER_DEPLOY_HOOK_URL"
         env:
           RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+
+  tag_release:
+    if: ${{ github.event_name == 'push' }}
+    needs: [simple_deployment_pipeline]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Bump version and push tag
+        uses: anothrNick/github-tag-action@1.75.0
+        with:
+          tag_prefix: v
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
