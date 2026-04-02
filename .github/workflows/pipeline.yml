@@ -38,13 +38,13 @@ jobs:
         run: npm run test:e2e
 
       - name: Deploy to Render
-        if: ${{ github.event_name == 'push' }}
+        if: ${{ github.event_name == 'push' && !contains(toJson(github.event.commits), '#skip') }}
         run: curl "$RENDER_DEPLOY_HOOK_URL"
         env:
           RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
 
   tag_release:
-    if: ${{ github.event_name == 'push' }}
+    if: ${{ github.event_name == 'push' && !contains(toJson(github.event.commits), '#skip') }}
     needs: [simple_deployment_pipeline]
     runs-on: ubuntu-latest
     steps:
