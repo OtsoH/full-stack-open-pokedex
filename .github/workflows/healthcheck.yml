@@ -1,0 +1,38 @@
+name: Periodic Health Check
+
+on:
+  schedule:
+    - cron: '*/30 * * * *'
+  workflow_dispatch:
+
+jobs:
+  health_check:
+    name: Check deployed service
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check deployed service URL
+        id: url_check
+        uses: jtalk/url-health-check-action@v5
+        continue-on-error: true
+        with:
+          url: https://full-stack-open-pokedex-4yrc.onrender.com/
+          follow-redirect: true
+          max-attempts: 3
+          retry-delay: 5s
+          retry-all: true
+
+      - name: Record success summary
+        if: ${{ steps.url_check.outcome == 'success' }}
+        run: |
+          echo "## Health check result" >> "$GITHUB_STEP_SUMMARY"
+          echo "PASS: https://full-stack-open-pokedex-4yrc.onrender.com/ is healthy." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Record failure summary
+        if: ${{ steps.url_check.outcome == 'failure' }}
+        run: |
+          echo "## Health check result" >> "$GITHUB_STEP_SUMMARY"
+          echo "FAIL: https://full-stack-open-pokedex-4yrc.onrender.com/ is not healthy." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Fail workflow when health check fails
+        if: ${{ steps.url_check.outcome == 'failure' }}
+        run: exit 1
