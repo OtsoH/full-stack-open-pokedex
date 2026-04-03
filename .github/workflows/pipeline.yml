@@ -56,3 +56,44 @@ jobs:
           tag_prefix: v
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  discord_notify_success:
+    if: ${{ always() && github.event_name == 'push' && github.ref == 'refs/heads/main' && !contains(toJson(github.event.commits), '#skip') && needs.simple_deployment_pipeline.result == 'success' && needs.tag_release.result == 'success' }}
+    needs: [simple_deployment_pipeline, tag_release]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Notify Discord about successful deployment
+        uses: sarisia/actions-status-discord@v1
+        with:
+          webhook: ${{ secrets.DISCORD_WEBHOOK }}
+          status: Success
+          title: "Deployment succeeded"
+          description: |
+            A new version was deployed from `${{ github.repository }}`.
+            Branch: `${{ github.ref_name }}`
+            Commit: `${{ github.sha }}`
+            Commit URL: ${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}
+            Workflow run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          color: 0x28a745
+          username: GitHub Actions
+
+  discord_notify_failure:
+    if: ${{ always() && (needs.simple_deployment_pipeline.result == 'failure' || needs.tag_release.result == 'failure') }}
+    needs: [simple_deployment_pipeline, tag_release]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Notify Discord about pipeline failure
+        uses: sarisia/actions-status-discord@v1
+        with:
+          webhook: ${{ secrets.DISCORD_WEBHOOK }}
+          status: Failure
+          title: "Build or deployment failed"
+          description: |
+            The pipeline failed in `${{ github.repository }}`.
+            Branch: `${{ github.ref_name }}`
+            Actor: `${{ github.actor }}`
+            Commit: `${{ github.sha }}`
+            Commit URL: ${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}
+            Workflow run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          color: 0xff0000
+          username: GitHub Actions
