@@ -19,3 +19,5 @@ Start by running `npm install` inside the project folder
 `npm run build` to make a production build
 `npm run start-prod` to run your production build
 
+## Blog app with similar CI/CD
+https://github.com/OtsoH/Blogapp-with-ci-cd
